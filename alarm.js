@@ -3,62 +3,65 @@ var nodeSpotifyWebHelper = require('node-spotify-webhelper');
 var spotify = new nodeSpotifyWebHelper.SpotifyWebHelper();
 var prompt = require('prompt');
 
-//
-// ### function stop ()
-// Stops input coming in from stdin
-//
-prompt.stop = function () {
-    if (prompt.stopped || !prompt.started) {
-        return;
-    }
-
-    stdin.destroy();
-    prompt.emit('stop');
-    prompt.stopped = true;
-    prompt.started = false;
-    prompt.paused = false;
-    return prompt;
-}
-
-//input
-var stdin = process.openStdin();
-
-var alarmSet = false;
-
-function startAlarm(){
-    console.log("Good morning!");
-    spotify.unpause(function(err, res){
-        if (err) {
-            return console.error(err);
-        }
-    });
-}
-
-function setAlarm(minutes){
-    if(minutes>=1){
-        setTimeout(startAlarm,(1000*60*minutes));
-        console.log("-- Alarm Set --");
-    }else if(minutes<1){
-        console.log("-- Error setting alarm --");
-    }
-}
-
-//returns number of minutes to wait
-function getTimeInput(){
-    var prompt2 = require('prompt');
-    prompt2.start();
-    prompt2.get(['hours', 'minutes'], function(err, result){
+function setAlarm(arg){
+    prompt.get(['hours', 'minutes'], function(err, result){
         if(err){
             return console.err(err);
         }
+        console.log("hours: " + result.hours);
+        console.log("minutes: " + result.minutes);
 
-        console.log('hours: ' + result.hours);
-        console.log('minutes: ' + result.minutes);
-        var minutes = (result.hours*60)+result.minutes;
-        setAlarm(minutes);
+        var minutes = (Number(result.hours)*60)+Number(result.minutes);
+
+        if(minutes>=0){
+            console.log("\n-- Alarm Set to " + result.hours + " hours and " + result.minutes + " minutes from now --");
+            setTimeout(function(){
+                console.log("\n\nGood morning!");
+                unpause();
+            },(1000*60*minutes));
+        }else if(minutes<0){
+            console.log("-- Error setting alarm --");
+        }
+        if(arg=='menu')
+            menu();
     });
-    prompt2.stop;
 }
+
+function pause(arg){
+    spotify.pause(function(err, res){
+        if(err){
+            return console.error(err);
+        }
+    });
+    if(arg=='menu')
+        menu();
+}
+
+function unpause(arg){
+    spotify.unpause(function(err, res){
+        if(err){
+            return console.error(err);
+        }
+    });
+    if(arg=='menu')
+        menu();
+}
+
+function info(arg){
+    spotify.getStatus(function (err, res) {
+        if (err) {
+            return console.error(err);
+        }
+
+        console.info('\nCurrently playing:',
+        res.track.artist_resource.name, '-',
+        res.track.track_resource.name + '\n');
+
+        if(arg=='menu')
+            menu();
+    });
+}
+//-- end basic functions --
 
 //main logic flow
 //explicitly called once, then recursively until quit is called? sure...that sounds like a plan
@@ -66,34 +69,31 @@ menu();
 prompt.start();
 var action;
 function menu(){
-    console.log("Please enter an action: (info, pause, play, alarm, quit)");
+    console.log("\nPlease enter an action: (info, pause, play, alarm, quit)");
     prompt.get(['action'], function(err, result){
         action = result.action;
-        console.log(action);
-        if(result.action=='info'){
-            console.log("info");
-        }else if(result.action=='pause'){
-            spotify.pause(function(err, res){});
-        }else if(result.action=='play'){
-            spotify.unpause(function(err, res){});
-        }else if(result.action=='alarm'){
-            var minutes = getTimeInput();
-        }else if(result.action=='quit'){
-            console.log("\n...Shutting down...");
-        }else if(result.action=='test'){
-            console.log("test");
-        }else{
-            console.log("Action is not supported, try again");
+
+        switch (action){
+            case 'info':
+                info('menu');
+                break;
+            case 'pause':
+                pause('menu');
+                break;
+            case 'play':
+                unpause('menu');
+                break;
+            case 'alarm':
+                setAlarm('menu');
+                break;
+            case 'quit':
+                console.log('\n...Shutting down...');
+                break;
+            default:
+                console.log('\nAction is not supported');
+                menu();
+                break;
+
         }
-
-        // if(result.action!='quit')
-        //     menu();
-        // prompt.stop;
     });
-    // console.log(action);
-    //test
-}
-
-function test(){
-
 }
