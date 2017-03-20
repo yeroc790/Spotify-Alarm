@@ -1,0 +1,15 @@
+{
+  "name": "spotify-alarm",
+  "version": "1.0.0",
+  "description": "Spotify Alarm",
+  "main": "alarm.js",
+  "scripts": {
+    "test": "node alarm.js"
+  },
+  "author": "Corey",
+  "license": "ISC",
+  "dependencies": {
+    "node-spotify-webhelper": "0.0.6",
+    "prompt": "^1.0.0"
+  }
+}
