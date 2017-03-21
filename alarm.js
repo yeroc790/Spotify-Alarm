@@ -4,32 +4,16 @@ var spotify = new nodeSpotifyWebHelper.SpotifyWebHelper();
 var prompt = require('prompt');
 
 //-- start basic functions --
+var alarm = { //will be set to have the value of the timeout call
+    "script": null,
+    "hour": 0,
+    "minute": 0,
+    "am": true
+};
+var alarmSet = false;
+
 function setAlarm(arg){
-    prompt.get(['hours', 'minutes'], function(err, result){
-        if(err){
-            return console.err(err);
-        }
-        console.log("hours: " + result.hours);
-        console.log("minutes: " + result.minutes);
-
-        var minutes = (Number(result.hours)*60)+Number(result.minutes);
-
-        if(minutes>=0){
-            console.log("\n-- Alarm Set to " + result.hours + " hours and " + result.minutes + " minutes from now --");
-            setTimeout(function(){
-                console.log("\n\nGood morning!");
-                unpause();
-            },(1000*60*minutes));
-        }else if(minutes<0){
-            console.log("-- Error setting alarm --");
-        }
-        if(arg=='menu')
-            menu();
-    });
-}
-
-function setAlarm2(arg){
-    console.log("What time would you like to wake up?");
+    console.log("\nWhat time would you like to wake up?");
     prompt.get(['hour', 'minute', 'amPm'], function(err, result){
         var newHour = Number(result.hour);
         var newMin = Number(result.minute);
@@ -59,15 +43,44 @@ function setAlarm2(arg){
         var minutes = (diffHour*60)+diffMin;
 
         if(minutes>=0){
-            console.log("\n-- Alarm Set to " + newHour + ":" + newMin + " --");
-            console.log("That is " + diffHour + " hours and " + diffMin + " minutes from now");
-            setTimeout(function(){
+            alarm.script = setTimeout(function(){
                 console.log("\n\nGood morning!");
                 unpause();
             },(1000*60*minutes));
+            alarm.hour = newHour;
+            alarm.minute = newMin;
+            if(amPm=='am')
+                alarm.am = true;
+            else
+                alarm.am = false;
+            alarmSet = true;
+            console.log("\n-- Alarm Set to " + newHour + ":" + newMin + " --");
+            console.log("That is " + diffHour + " hours and " + diffMin + " minutes from now");
         }else if(minutes<0){
             console.log("-- Error setting alarm --");
+            alarmSet = false;
         }
+        if(arg=='menu')
+            menu();
+    });
+}
+
+function cancelAlarm(arg){
+    var am;
+    if(alarm.am)
+        am = "am";
+    else
+        am = "pm";
+    console.log("\nAlarm already set to " + alarm.hour + ":" + alarm.minute + am + ", cancel it? (yes/no)");
+    prompt.get(['answer'], function(err, result){
+        if(result.answer=='yes'){
+            clearTimeout(alarm.script);
+            console.log("\n-- Alarm cancelled --");
+            alarmSet = false;
+        }else{
+            console.log("\nOk I'll leave the alarm on")
+        }
+
         if(arg=='menu')
             menu();
     });
@@ -136,7 +149,10 @@ function menu(){
                 unpause('menu');
                 break;
             case 'alarm':
-                setAlarm2('menu');
+                if(alarmSet==false)
+                    setAlarm('menu');
+                else
+                    cancelAlarm('menu');
                 break;
             case 'quit':
                 console.log('\n...Shutting down...');
