@@ -3,6 +3,41 @@ var nodeSpotifyWebHelper = require('node-spotify-webhelper');
 var spotify = new nodeSpotifyWebHelper.SpotifyWebHelper();
 var prompt = require('prompt');
 
+//setting up some prompts
+var basicPrompt = {
+    properties: {
+        action: {
+            pattern: /^[a-zA-Z]+$/,
+            message: 'Action must only contain letters',
+            required: true
+        }
+    }
+};
+
+// if you want to go from 0 to 5000, pattern = "(5000|([1-4]?[0-9]?[0-9]?[0-9]?))";
+// if you want to go from 1 to 5000, pattern = "(5000|([1-4][0-9][0-9][0-9])|([1-9][0-9][0-9])|([1-9][0-9])|[1-9])"
+
+var timePrompt = {
+    properties: {
+        hour: {
+            // pattern: /^(5000|([1-4][0-9][0-9][0-9])|([1-9][0-9][0-9])|([1-9][0-9])|[1-9])+$/,
+            pattern: /^(12)|(10)|([1-9]{1})+$/, //tweak this
+            message: 'Please enter a valid hour',
+            required: true
+        },
+        minute: {
+            pattern: /^[0-9]{}+$/,
+            message: 'Please enter a valid number',
+            required: true
+        },
+        amPm: {
+            pattern: /^[am][pm]+$/,
+            message: 'Please enter either am or pm',
+            required: true
+        }
+    }
+}
+
 //-- start basic functions --
 var alarm = { //will be set to have the value of the timeout call
     "script": null,
@@ -14,7 +49,7 @@ var alarmSet = false;
 
 function setAlarm(arg){
     console.log("\nWhat time would you like to wake up?");
-    prompt.get(['hour', 'minute', 'amPm'], function(err, result){
+    prompt.get(timePrompt, function(err, result){
         var newHour = Number(result.hour);
         var newMin = Number(result.minute);
         var amPm = result.amPm;
