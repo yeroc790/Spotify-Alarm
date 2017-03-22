@@ -2,6 +2,11 @@
 var nodeSpotifyWebHelper = require('node-spotify-webhelper');
 var spotify = new nodeSpotifyWebHelper.SpotifyWebHelper();
 var prompt = require('prompt');
+var colors = require('colors/safe');
+
+// prompt.message = colors.cyan("Question");
+// prompt.delimiter = colors.cyan(":");
+prompt.message = null;
 
 //setting up some prompts
 var basicPrompt = {
@@ -9,47 +14,20 @@ var basicPrompt = {
         action: {
             pattern: /^[a-zA-Z]+$/,
             message: 'Action must only contain letters',
-            required: true
+            required: true,
+            description: colors.cyan("Enter an action")
         }
     }
 };
 
-// (0[0-9]|1[0-9]|2[0-3])(:[0-5][0-9]){2}
-
-// if you want to go from 0 to 5000, pattern = "(5000|([1-4]?[0-9]?[0-9]?[0-9]?))";
-// if you want to go from 1 to 5000, pattern = "(5000|([1-4][0-9][0-9][0-9])|([1-9][0-9][0-9])|([1-9][0-9])|[1-9])"
-
-// /^ ... +$/ means from the start to the finish, the whole thing
+//pattern uses javascript regular expressions
 var timePrompt = {
     properties: {
-        hour: {
-            // pattern: /^(5000|([1-4][0-9][0-9][0-9])|([1-9][0-9][0-9])|([1-9][0-9])|[1-9])+$/,
-            // pattern: /^(12)|(10)|([1-9]{1})+$/, //tweak this
-            // pattern: /^((?:19|20)[0-9]{2})+$/,
-            // pattern: /^(?:([0-9]{1})|(1[0-2]{1}))+$/,
-            // pattern: /^(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))+$/, //verifies YYYY-MM-DD
-            // pattern: /^((?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])))+$/,
-
-            // pattern: /^(0[0-9]|1[0-9]|2[0-3])(:[0-5][0-9]){2}+$/, //accepts only in the form HH:MM:SS, hour ranges from 00 - 23
-            // pattern: /^((([1-9]{1})|1[0-2])(:[0-5][0-9]){2})+$/, //accepts only in the form (H)H:MM:SS, where hour ranges from 1 - 12
-
-
-            // pattern: /^(0[0-9]|1[0-2])+$/, //accepts hour ranging from 00 - 12
-            pattern: /^(0[0-9]|1[0-2]{1})+$/,
-            // pattern: /^((([1-9]{1})|1[0-2]){2})+$/,
-            // pattern: /^[0-9]{1}|1+[0-2]+$/,
-            message: 'Please enter a valid hour',
-            required: true
-        },
-        minute: {
-            pattern: /^[0-9]{}+$/,
-            message: 'Please enter a valid number',
-            required: true
-        },
-        amPm: {
-            pattern: /^[am][pm]+$/,
-            message: 'Please enter either am or pm',
-            required: true
+        time: {
+            pattern: /^([1-9]|1[0-2]):([0-5][0-9])[ap]m$/,
+            message: 'Please enter a time in the following format (H)H:MM(am/pm)',
+            required: true,
+            description: colors.cyan("Enter a time")
         }
     }
 }
@@ -64,15 +42,26 @@ var alarm = { //will be set to have the value of the timeout call
 var alarmSet = false;
 
 function setAlarm(arg){
-    console.log("\nWhat time would you like to wake up?");
+    console.log("\nWhat time would you like to wake up? (H)H:MM(am/pm)");
     prompt.get(timePrompt, function(err, result){
-        var newHour = Number(result.hour);
-        var newMin = Number(result.minute);
-        var amPm = result.amPm;
+        var time = result.time.split(":"); //so timeArr[0]: '8' and timeArr[1]: '54pm'
+        var newHour = Number(time[0]);
+        var newMin = Number(time[1].substring(0,2)); // 05 gets set to 5
+        var amPm = time[1].substring(2);
+
+        //for output later
+        var hour = String(newHour);
+        var min = String(newMin);
 
         //converts to military time
-        if(result.amPm == 'pm'){
+        if(amPm == 'pm'){
             newHour += 12;
+        }
+
+        if(newHour==12){
+            if(amPm=='am'){
+                newHour = 0;
+            }
         }
 
         var now = new Date();
@@ -97,6 +86,7 @@ function setAlarm(arg){
             alarm.script = setTimeout(function(){
                 console.log("\n\nGood morning!");
                 unpause();
+                alarmSet = false;
             },(1000*60*minutes));
             alarm.hour = newHour;
             alarm.minute = newMin;
@@ -105,7 +95,7 @@ function setAlarm(arg){
             else
                 alarm.am = false;
             alarmSet = true;
-            console.log("\n-- Alarm Set to " + newHour + ":" + newMin + " --");
+            console.log("-- Alarm set to " + hour + ":" + min + " --");
             console.log("That is " + diffHour + " hours and " + diffMin + " minutes from now");
         }else if(minutes<0){
             console.log("-- Error setting alarm --");
@@ -186,7 +176,7 @@ prompt.start();
 var action;
 function menu(){
     console.log("\nPlease enter an action: (info, pause, play, alarm, quit)");
-    prompt.get(['action'], function(err, result){
+    prompt.get(basicPrompt, function(err, result){
         action = result.action;
 
         switch (action){
