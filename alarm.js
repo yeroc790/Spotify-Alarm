@@ -14,14 +14,30 @@ var basicPrompt = {
     }
 };
 
+// (0[0-9]|1[0-9]|2[0-3])(:[0-5][0-9]){2}
+
 // if you want to go from 0 to 5000, pattern = "(5000|([1-4]?[0-9]?[0-9]?[0-9]?))";
 // if you want to go from 1 to 5000, pattern = "(5000|([1-4][0-9][0-9][0-9])|([1-9][0-9][0-9])|([1-9][0-9])|[1-9])"
 
+// /^ ... +$/ means from the start to the finish, the whole thing
 var timePrompt = {
     properties: {
         hour: {
             // pattern: /^(5000|([1-4][0-9][0-9][0-9])|([1-9][0-9][0-9])|([1-9][0-9])|[1-9])+$/,
-            pattern: /^(12)|(10)|([1-9]{1})+$/, //tweak this
+            // pattern: /^(12)|(10)|([1-9]{1})+$/, //tweak this
+            // pattern: /^((?:19|20)[0-9]{2})+$/,
+            // pattern: /^(?:([0-9]{1})|(1[0-2]{1}))+$/,
+            // pattern: /^(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))+$/, //verifies YYYY-MM-DD
+            // pattern: /^((?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])))+$/,
+
+            // pattern: /^(0[0-9]|1[0-9]|2[0-3])(:[0-5][0-9]){2}+$/, //accepts only in the form HH:MM:SS, hour ranges from 00 - 23
+            // pattern: /^((([1-9]{1})|1[0-2])(:[0-5][0-9]){2})+$/, //accepts only in the form (H)H:MM:SS, where hour ranges from 1 - 12
+
+
+            // pattern: /^(0[0-9]|1[0-2])+$/, //accepts hour ranging from 00 - 12
+            pattern: /^(0[0-9]|1[0-2]{1})+$/,
+            // pattern: /^((([1-9]{1})|1[0-2]){2})+$/,
+            // pattern: /^[0-9]{1}|1+[0-2]+$/,
             message: 'Please enter a valid hour',
             required: true
         },
