@@ -4,12 +4,14 @@
   "description": "Spotify Alarm",
   "main": "alarm.js",
   "scripts": {
-    "test": "node alarm.js"
+    "alarm": "node alarm.js",
+    "alt": "node alarm2.js"
   },
   "author": "Corey",
   "license": "ISC",
   "dependencies": {
     "node-spotify-webhelper": "0.0.6",
-    "prompt": "^1.0.0"
+    "prompt": "^1.0.0",
+    "spotify-web-helper": "^1.7.1"
   }
 }
