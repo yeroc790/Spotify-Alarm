@@ -76,8 +76,9 @@ function setAlarm(arg){
 
         if(diffMin<0){
             if(diffHour==0)
-                diffHour = 23;
+                diffHour = 24;
             diffMin += 60;
+            diffHour --;
         }
 
         var minutes = (diffHour*60)+diffMin;
